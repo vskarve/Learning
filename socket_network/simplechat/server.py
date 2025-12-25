@@ -1,9 +1,12 @@
 import socket
 import threading
 
+#Desktop/Learning/socket_network/simplechat
+
 DISCONNECT_MSG_CLIENT = "!CLIENT_DISCONNECT"
 DISCONNECT_MSG_SERVER = "!SERVER_DISCONNECT"
 HEADER = 10
+FORMAT = "utf-8"
 
 class Client:
 
@@ -12,7 +15,7 @@ class Client:
         self.server_object = server
         self.connection_socket_object = conn
         self.ADDRESS = addr
-        self.NAME = conn
+        self.name = conn
 
     def communicate_with_client(self):
         print(f"[NEW CONNECTION] {self.connection_socket_object} connected.")
@@ -20,7 +23,7 @@ class Client:
 
         while connected:
             message_recived = self.recive()
-            self.server_socket.broadcast(self, message_recived)
+            self.server_object.broadcast(self, message_recived)
 
         self.connection_socket_object.close()
         print(f"[TERMINATED CONNECTION] {self.connection_socket_object} disconnected.")
@@ -33,10 +36,13 @@ class Client:
 
     def recive(self):
         encoded_header = self.connection_socket_object.recv(self.server_object.HEADER)
-        message_length = int(encoded_header.decode(self.server_object.FORMAT).strip())
+        print("GOT SHIT_" + encoded_header.decode(self.server_object.FORMAT))
+        if encoded_header:
+            message_length = int(encoded_header.decode(self.server_object.FORMAT).strip())
 
-        encoded_message = self.connection_socket_object.recv(message_length)
-        return encoded_message.decode(self.server_object.FORMAT)
+            decoded_message = self.connection_socket_object.recv(message_length).decode(self.server_object.FORMAT)
+            print("Got a message: " + decoded_message)
+            return decoded_message
 
     def __eq__(self, other):
         '''Two client objects are the same if they have the same connection socket'''
@@ -46,7 +52,7 @@ class Client:
 class Server:
     '''Server class object'''
 
-    def __init__(self, header=10, format="utf-8"):
+    def __init__(self, header=HEADER, format=FORMAT):
         '''Header size of messages and encoding format'''
         self.SERVER_NAME = socket.gethostname() + ".local"
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -62,6 +68,7 @@ class Server:
     def __del__(self):
         '''Closes the socket object'''
         self.server_socket.close()
+        print("[SERVER ClOSED]")
 
     def set_and_bind_addr_port(self, start_port=5050):
         '''Tests valid ports starting with start_port. Binds and returns servers address and port'''
