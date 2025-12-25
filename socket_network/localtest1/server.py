@@ -4,7 +4,7 @@ import time
 
 #/Desktop/Learning/socket_network/localtest1
 
-PORT = 5050
+PORT = 5051
 HEADER = 64
 FORMAT = "utf-8"
 DISCONNECT_MESSAGE = "!DISCONNECT"
@@ -34,7 +34,7 @@ def handle_client(conn, addr):
         #When connecting a empy string is sent as message (only once), which is invalid for the program below
         if msg_length:
             msg_length = int(msg_length)
-            msg = conn.recive(msg_length).decode(FORMAT)
+            msg = conn.recv(msg_length).decode(FORMAT)
             if msg == DISCONNECT_MESSAGE:
                 connected = False
             print(f"[{addr}] {msg}")
