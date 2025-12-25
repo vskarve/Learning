@@ -2,6 +2,9 @@ import socket
 import threading
 
 PORT = 5050
+HEADER = 64
+FORMAT = "utf-8"
+DISCONNECT_MESSAGE = "!DISCONNECT"
 
 #Ipv4 adress (local adress on router system, wont be reachable outside router)
 #SERVER = "172.29.198.79" (an example, but to get for every computer run below)
@@ -23,11 +26,19 @@ def handle_client(conn, addr):
     while connected:
         #How many bites do we want to recive
         #Pauses until message recived, hence threading
-        msg = conn.recv()
+        msg_length = conn.recv(HEADER).decode(FORMAT)
+        msg_length = int(msg_length)
+        msg = conn.recive(msg_length).decode(FORMAT)
+        if msg == DISCONNECT_MESSAGE:
+            connected = False
+        print(f"[{addr}] {msg}")
+
+    conn.close()
 
 def start():
     #Set the server to listening mode, making a queue of incoming requests
     server.listen()
+    print(f"[LISTENING] Server is listening on {SERVER}")
     while True:
         #accepts one connection request, conn is a socket object
         conn, addr = server.accept()
