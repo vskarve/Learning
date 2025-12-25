@@ -1,5 +1,8 @@
 import socket
 import threading
+import time
+
+#/Desktop/Learning/socket_network/localtest1
 
 PORT = 5050
 HEADER = 64
@@ -27,11 +30,14 @@ def handle_client(conn, addr):
         #How many bites do we want to recive
         #Pauses until message recived, hence threading
         msg_length = conn.recv(HEADER).decode(FORMAT)
-        msg_length = int(msg_length)
-        msg = conn.recive(msg_length).decode(FORMAT)
-        if msg == DISCONNECT_MESSAGE:
-            connected = False
-        print(f"[{addr}] {msg}")
+
+        #When connecting a empy string is sent as message (only once), which is invalid for the program below
+        if msg_length:
+            msg_length = int(msg_length)
+            msg = conn.recive(msg_length).decode(FORMAT)
+            if msg == DISCONNECT_MESSAGE:
+                connected = False
+            print(f"[{addr}] {msg}")
 
     conn.close()
 
