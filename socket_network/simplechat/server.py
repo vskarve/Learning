@@ -17,15 +17,20 @@ class Client:
         self.ADDRESS = addr
         self.name = conn
 
+    def __del__(self):
+         self.connection_socket_object.close()
+
     def communicate_with_client(self):
         print(f"[NEW CONNECTION] {self.connection_socket_object} connected.")
         connected = True
 
         while connected:
             message_recived = self.recive()
+            if not message_recived:
+                connected = False
             self.server_object.broadcast(self, message_recived)
 
-        self.connection_socket_object.close()
+        self.server_object.disconnect_client(self)
         print(f"[TERMINATED CONNECTION] {self.connection_socket_object} disconnected.")
 
     def send(self, message_send, sender_name):
@@ -35,14 +40,19 @@ class Client:
         self.connection_socket_object.send(full_message)
 
     def recive(self):
-        encoded_header = self.connection_socket_object.recv(self.server_object.HEADER)
-        print("GOT SHIT_" + encoded_header.decode(self.server_object.FORMAT))
+        try:
+            encoded_header = self.connection_socket_object.recv(self.server_object.HEADER)
+        except ConnectionResetError:
+            return None
+        
         if encoded_header:
             message_length = int(encoded_header.decode(self.server_object.FORMAT).strip())
 
             decoded_message = self.connection_socket_object.recv(message_length).decode(self.server_object.FORMAT)
             print("Got a message: " + decoded_message)
             return decoded_message
+        else:
+            return None
 
     def __eq__(self, other):
         '''Two client objects are the same if they have the same connection socket'''
@@ -101,8 +111,10 @@ class Server:
         for client in self.client_objects:
             if not client == sending_client:
                 client.send(message, sending_client.name)
-
-
+    
+    def disconnect_client(self, client):
+        client.__del__()
+        self.client_objects.remove(client)
 
 def main():
     server = Server()
