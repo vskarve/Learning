@@ -14,7 +14,7 @@ def send(msg):
     #Formats into utf-8 format with bites
     message = msg.encode(FORMAT)
     #since server needs to know msg length
-    msg_length = len(msg)
+    msg_length = len(message)
     send_length = str(msg_length).encode(FORMAT)
 
     #first message neeads to have size if HEADER (hard coded on server), b" " is a byte literal of value 0x20 and only occupies one bite
