@@ -18,7 +18,7 @@ class Canvas:
         self.canvas_surface.fill(self.options.background_color)
 
         if self.options.auto_scroll:
-            self.scroll = self.get_scroll_top(self.options.sticky_botton)
+            self.scroll = self.get_scroll_top(self.options.sticky_bottom)
         self.draw_text()
 
         root.blit(self.canvas_surface, (x, y))

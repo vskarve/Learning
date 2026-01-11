@@ -1,4 +1,5 @@
 import pygame
+from dataclasses import fields
 
 from .the_textbox.canvas import Canvas
 from .the_textbox.frame import Frame
@@ -32,8 +33,8 @@ class Textbox:
         self.canvas.add_text(text)
 
     def config(self, **kwargs):
-        frame_fields= {f.name for f in self.frame.options.get_fields()}
-        canvas_fields = {f.name for f in self.canvas.options.get_fields()}
+        frame_fields= {f.name for f in fields(self.frame.options)}
+        canvas_fields = {f.name for f in fields(self.canvas.options)}
         argument_keys = set(kwargs)
 
         unknown = argument_keys - (frame_fields | canvas_fields)

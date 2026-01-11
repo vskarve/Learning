@@ -9,7 +9,7 @@ def main():
     win = pygame.display.set_mode((500, 500))
     textbox = Textbox(win, 10, 10, 400, 300)
     textbox.add_text("HEJ PÅ dig\nHur mr duddddddddddddfffffff?")
-    textbox.config(sticky_botton = True)
+    textbox.config(sticky_bottom = False)
     count = 0
     running = True
     while running:

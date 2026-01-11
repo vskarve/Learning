@@ -1,5 +1,5 @@
 import pygame
 
-class scroll_bar:
+class Scroll_bar:
     def __init__(self):
         pass
