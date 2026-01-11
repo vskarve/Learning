@@ -22,9 +22,10 @@ class Textbox:
         self.root = root
         self.canvas = Canvas(canvas_width, canvas_height, extra_options.canvas_options)
         self.frame = Frame(x, y, width, height, extra_options.frame_options)
-        self.interface = Interface(x, y, height, extra_options.interface_options)
+        self.interface = Interface(x, y, self, height, extra_options.interface_options)
 
     def draw(self):
+        self.update_processes()
         canvas_x_pos = self.frame.rectangle.x + self.frame.options.frame_thickness
         canvas_y_pos = self.frame.rectangle.y + self.frame.options.frame_thickness
 
@@ -54,8 +55,30 @@ class Textbox:
         for key in argument_keys & interface_fields:
             self.interface.setattr(key, kwargs[key])
 
-    def get_attr_value(key):
-        pass
+    def handle_event(self, event):
+        self.interface.handle_event(event)
+
+    def scroll_by(self, dscroll):
+        max_scroll = self.canvas.get_max_scroll(sticky_botton=self.canvas.options.sticky_bottom)
+        min_scroll = self.canvas.get_min_scroll(sticky_botton=self.canvas.options.sticky_bottom)
+        
+        if self.canvas.scroll + dscroll > max_scroll:
+            self.canvas.have_been_scrolled = True
+            if self.canvas.scroll + dscroll > min_scroll:
+                self.canvas.scroll = min_scroll
+            else:
+                self.canvas.scroll += dscroll
+        else:
+            self.canvas.scroll = max_scroll
+            self.canvas.have_been_scrolled = False
+
+    def update_processes(self):
+        '''Runs every time textbox.draw is called, making other class processes happen over time'''
+        self.interface.scroll_damping()
+        
+        
+        
+
 
 
     

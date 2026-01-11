@@ -9,16 +9,17 @@ class Canvas:
         self.height = height
         self.canvas_surface = pygame.Surface((width, height))
         self.scroll = 0
+        self.have_been_scrolled = False
 
         self.font = pygame.font.SysFont(self.options.font, self.options.text_size)
-        max_line_length = self.width - self.options.x_indent
+        max_line_length = self.width - self.options.x_indent - self.options.end_line_padding
         self.text_handler = Text_handler(max_line_length, self.font)
 
     def draw(self, root, x: int, y: int):
         self.canvas_surface.fill(self.options.background_color)
 
-        if self.options.auto_scroll:
-            self.scroll = self.get_scroll_top(self.options.sticky_bottom)
+        if self.options.auto_scroll and not self.have_been_scrolled:
+            self.scroll = self.get_max_scroll(self.options.sticky_bottom)
         self.draw_text()
 
         root.blit(self.canvas_surface, (x, y))
@@ -44,14 +45,21 @@ class Canvas:
     def add_scroll(self, dscroll: int) -> None:
         self.scroll += dscroll
     
-    def get_scroll_top(self, sticky_botton = False) -> float:
+    def get_max_scroll(self, sticky_botton = False) -> float:
         nr_lines = self.text_handler.count_lines()
-        count = self.height - nr_lines * self.options.line_spacing
+        scroll = self.height - nr_lines * self.options.line_spacing
 
         if not sticky_botton:
-            count = min(0, count)
+            scroll = min(0, scroll)
         
-        return count
+        return scroll
+    
+    def get_min_scroll(self, sticky_botton = False):
+        if not sticky_botton:
+            return 0
+        else:
+
+            return max(0, self.get_max_scroll(sticky_botton))
     
     def get_scroll(self) -> int:
         return self.scroll

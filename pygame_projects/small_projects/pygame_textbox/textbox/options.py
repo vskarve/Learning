@@ -1,4 +1,4 @@
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, is_dataclass
 from typing import Literal
 
 @dataclass
@@ -13,6 +13,7 @@ class Canvas_options:
     line_spacing = None
 
     x_indent: int = 1
+    end_line_padding:int = 0
 
     auto_scroll: bool = True
     sticky_bottom: bool = False
@@ -41,51 +42,61 @@ class Thumb_options:
     def __post_init__(self):
         self.thumb_scale = max(0.05, min(1, self.thumb_scale))
 
-class Interface_options:
+@dataclass
+class Userinterface_options:
+    has_scroll_bar: bool = True 
+    scroll_speed: int = 10
+    scroll_acceleration: float = 1.6
+    mouse_scroll: bool = True
+    scroll_timeout: float = 0.1
+    scroll_inertia: bool = False
+    scroll_deacceleration: float = 0.75
 
-    interface_fields = {"has_scroll_bar", "scroll_speed"}
+class Data_manager:
+    def split_and_check_kwargs(self, *args):
+        '''Takes in class pointers and lastly kwargs, returns in passed order splitted kwargs'''
+        outputed_kwargs = []
 
-    def __init__(self, **kwargs):
-        self.has_scroll_bar: bool = True 
-        self.scroll_speed: int = 10
+        dataclasses = args[:-1]
+        kwargs = args[-1]
 
-        bar_fields = {f.name for f in fields(Bar_options)}
-        thumb_fields = {f.name for f in fields(Thumb_options)}
-
-        unknown = set(kwargs) - (bar_fields | thumb_fields | Interface_options.interface_fields)
+        organized_fields = []
+        all_fields = set()
+        for dataclass in dataclasses:
+            if is_dataclass(dataclass):
+                field_names = {f.name for f in fields(dataclass)}
+            else:
+                field_names = dataclass.get_field_names()
+            organized_fields.append(field_names)
+            outputed_kwargs.append({k:v for k, v in kwargs.items() if k in field_names})
+            all_fields.update(field_names)
+        
+        unknown = set(kwargs) - all_fields
         if unknown:
             raise ValueError(f"Unknown keys {unknown}")
         
-        bar_kwargs = {k:v for k, v in kwargs.items() if k in bar_fields}
-        thumb_kwargs = {k:v for k, v in kwargs.items() if k in thumb_fields}
-        interface_kwargs = {k:v for k, v in kwargs.items() if k in Interface_options.interface_fields}
+        return outputed_kwargs
 
+
+class Interface_options(Data_manager):
+    def __init__(self, **kwargs):
+        bar_kwargs, thumb_kwargs, user_kwargs = self.split_and_check_kwargs(Bar_options, Thumb_options, Userinterface_options, kwargs)
+
+        self.user_options: Userinterface_options = Userinterface_options(**user_kwargs)        
         self.bar_options: Bar_options = Bar_options(**bar_kwargs)
         self.thumb_options: Thumb_options = Thumb_options(**thumb_kwargs)
 
-        for k, v in interface_kwargs.items():
-            setattr(self, k, v)
 
     @classmethod
-    def get_fields_names(cls):
-        keys = cls.interface_fields | {f.name for f in fields(Bar_options)} | {f.name for f in fields(Thumb_options)}
+    def get_field_names(cls):
+        keys = {f.name for f in fields(Userinterface_options)} | {f.name for f in fields(Bar_options)} | {f.name for f in fields(Thumb_options)}
         return keys
 
 
 
-class Input_Options:
+class Input_Options(Data_manager):
     def __init__(self, **kwargs):
-        frame_fields = {f.name for f in fields(Frame_options)}
-        canvas_fields = {f.name for f in fields(Canvas_options)}
-        interface_fields = Interface_options.get_fields_names()
-
-        unknown = set(kwargs) - (frame_fields | canvas_fields | interface_fields)
-        if unknown:
-            raise ValueError(f"Unknown keys {unknown}")
-        
-        frame_kwargs = {k:v for k, v in kwargs.items() if k in frame_fields}
-        canvas_kwargs = {k:v for k, v in kwargs.items() if k in canvas_fields}
-        interface_kwargs = {k:v for k, v in kwargs.items() if k in interface_fields}
+        frame_kwargs, canvas_kwargs, interface_kwargs = self.split_and_check_kwargs(Frame_options, Canvas_options, Interface_options, kwargs)
 
         self.frame_options = Frame_options(**frame_kwargs)
         self.canvas_options = Canvas_options(**canvas_kwargs)
