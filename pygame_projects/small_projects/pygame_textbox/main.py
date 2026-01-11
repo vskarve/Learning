@@ -10,6 +10,8 @@ def main():
     textbox = Textbox(win, 10, 10, 400, 300)
     textbox.add_text("HEJ PÅ dig\nHur mr duddddddddddddfffffff?")
     textbox.config(sticky_bottom = False)
+    textbox.config(thumb_scale = 2.5)
+    print(textbox.interface.scroll_bar.thumb.options.thumb_scale)
     count = 0
     running = True
     while running:
@@ -32,3 +34,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+#skapa get_attr i textbox

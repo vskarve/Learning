@@ -3,6 +3,7 @@ from dataclasses import fields
 
 from .the_textbox.canvas import Canvas
 from .the_textbox.frame import Frame
+from .interface.userinterface import Interface
 from .options import Input_Options
 
 class Textbox:
@@ -21,6 +22,7 @@ class Textbox:
         self.root = root
         self.canvas = Canvas(canvas_width, canvas_height, extra_options.canvas_options)
         self.frame = Frame(x, y, width, height, extra_options.frame_options)
+        self.interface = Interface(x, y, height, extra_options.interface_options)
 
     def draw(self):
         canvas_x_pos = self.frame.rectangle.x + self.frame.options.frame_thickness
@@ -35,20 +37,25 @@ class Textbox:
     def config(self, **kwargs):
         frame_fields= {f.name for f in fields(self.frame.options)}
         canvas_fields = {f.name for f in fields(self.canvas.options)}
+        interface_fields = {f for f in self.interface.get_field_names()}
         argument_keys = set(kwargs)
 
-        unknown = argument_keys - (frame_fields | canvas_fields)
+        unknown = argument_keys - (frame_fields | canvas_fields | interface_fields)
 
         if unknown:
             raise ValueError(f"Unknown keys {unknown}")
-        
-        
         
         for key in argument_keys & frame_fields:
             setattr(self.frame.options, key, kwargs[key])
 
         for key in argument_keys & canvas_fields:
             setattr(self.canvas.options, key, kwargs[key])
+        
+        for key in argument_keys & interface_fields:
+            self.interface.setattr(key, kwargs[key])
+
+    def get_attr_value(key):
+        pass
 
 
     
